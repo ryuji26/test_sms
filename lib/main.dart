@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:test_sms/screens/login_with_phone.dart';
 import 'package:test_sms/screens/login_screen.dart';
 import 'package:test_sms/screens/phoneAuth2.dart';
+import 'package:test_sms/searchbar.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Login',
-      home: HomeScreen(),
+      home: SearchBar(),
     );
   }
 }
