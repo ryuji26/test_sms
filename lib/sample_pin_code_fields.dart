@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import './constants/constants.dart';
 
 void main() => runApp(MyApp());
 
@@ -95,7 +93,7 @@ class _PinCodeVerificationScreenState extends State<PinCodeVerificationScreen> {
               ),
               Padding(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 8),
                 child: RichText(
                   text: TextSpan(
                       text: "Enter the code sent to ",
@@ -216,7 +214,7 @@ class _PinCodeVerificationScreenState extends State<PinCodeVerificationScreen> {
               ),
               Container(
                 margin:
-                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 30),
+                    const EdgeInsets.symmetric(vertical: 16.0, horizontal: 30),
                 child: ButtonTheme(
                   height: 50,
                   child: TextButton(
@@ -229,7 +227,7 @@ class _PinCodeVerificationScreenState extends State<PinCodeVerificationScreen> {
                         setState(() => hasError = true);
                       } else {
                         setState(
-                              () {
+                          () {
                             hasError = false;
                             snackBar("OTP Verified!!");
                           },
@@ -238,12 +236,12 @@ class _PinCodeVerificationScreenState extends State<PinCodeVerificationScreen> {
                     },
                     child: Center(
                         child: Text(
-                          "VERIFY".toUpperCase(),
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold),
-                        )),
+                      "VERIFY".toUpperCase(),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    )),
                   ),
                 ),
                 decoration: BoxDecoration(
@@ -268,20 +266,20 @@ class _PinCodeVerificationScreenState extends State<PinCodeVerificationScreen> {
                 children: <Widget>[
                   Flexible(
                       child: TextButton(
-                        child: Text("Clear"),
-                        onPressed: () {
-                          textEditingController.clear();
-                        },
-                      )),
+                    child: Text("Clear"),
+                    onPressed: () {
+                      textEditingController.clear();
+                    },
+                  )),
                   Flexible(
                       child: TextButton(
-                        child: Text("Set Text"),
-                        onPressed: () {
-                          setState(() {
-                            textEditingController.text = "123456";
-                          });
-                        },
-                      )),
+                    child: Text("Set Text"),
+                    onPressed: () {
+                      setState(() {
+                        textEditingController.text = "123456";
+                      });
+                    },
+                  )),
                 ],
               )
             ],

@@ -41,12 +41,17 @@ dependencies:
   pin_code_fields: ^7.3.0
   flutter_riverpod: ^1.0.3
   form_field_validator: ^1.1.0
+  freezed_annotation: ^1.0.0
+  state_notifier: ^0.7.1
+  hooks_riverpod: ^1.0.2
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_lints: ^1.0.0
+  build_runner: ^2.1.5
+  freezed: ^1.0.2+1
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
