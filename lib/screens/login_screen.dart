@@ -1,60 +1,32 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import "package:flutter/material.dart";
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:test_sms/controllers/login_controller.dart';
 import 'package:test_sms/screens/home_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-enum MobileVerificationState {
-  SHOW_MOBILE_FORM_STATE,
-  SHOW_OTP_FORM_STATE,
-}
-
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loginController = ref.watch(loginControllerProvider);
+    return Scaffold(
+        body: Container(
+      child: loginController.showLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : MobileFormWidget(),
+      padding: const EdgeInsets.all(16),
+    ));
+  }
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  MobileVerificationState currentState =
-      MobileVerificationState.SHOW_MOBILE_FORM_STATE;
-
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController otpController = TextEditingController();
-
-  FirebaseAuth auth = FirebaseAuth.instance;
-
-  String verificationID = "";
-
-  bool showLoading = false;
-
-  void signInWithPhoneAuthCredential(
-      PhoneAuthCredential phoneAuthCredential) async {
-    setState(() {
-      showLoading = true;
-    });
-
-    try {
-      final authCredential =
-          await auth.signInWithCredential(phoneAuthCredential);
-
-      setState(() {
-        showLoading = false;
-      });
-
-      if (authCredential.user != null) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
-      }
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        showLoading = false;
-      });
-    }
-  }
-
-  getMobileFormWidget(context) {
+class MobileFormWidget extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loginController = ref.watch(loginControllerProvider);
     return Stack(
       children: [
         SafeArea(
@@ -101,11 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         TextField(
-                          controller: phoneController,
+                          controller: loginController.phoneController,
                           style: TextStyle(fontSize: 25),
-                          // inputFormatters: [
-                          //   LengthLimitingTextInputFormatter(11)
-                          // ],
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(11)
+                          ],
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                             hintText: '080 1234 5678',
@@ -129,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ..onTap = () {
                                       Navigator.push(
                                           context,
-                                          // TOPに移動,MyApp()を後で修正
                                           MaterialPageRoute(
                                               builder: (context) =>
                                                   HomeScreen()));
@@ -196,32 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 50,
               child: TextButton(
                 onPressed: () async {
-                  setState(() {
-                    showLoading = true;
-                  });
-
-                  await auth.verifyPhoneNumber(
-                    phoneNumber: phoneController.text,
-                    verificationCompleted: (phoneAuthCredential) async {
-                      setState(() {
-                        showLoading = false;
-                      });
-                    },
-                    verificationFailed: (verificationFailed) async {
-                      setState(() {
-                        showLoading = false;
-                      });
-                    },
-                    codeSent: (verificationId, resendingToken) async {
-                      setState(() {
-                        showLoading = false;
-                        currentState =
-                            MobileVerificationState.SHOW_OTP_FORM_STATE;
-                        this.verificationID = verificationId;
-                      });
-                    },
-                    codeAutoRetrievalTimeout: (verificationId) async {},
-                  );
+                  loginController.verifyPhoneNumber(context);
                 },
                 child: Text(
                   '送信する',
@@ -237,67 +183,110 @@ class _LoginScreenState extends State<LoginScreen> {
       ],
     );
   }
+}
 
-  getOtpFormWidget(context) {
-    return Column(
-      children: [
-        Spacer(),
-        PinCodeTextField(
-          controller: otpController,
-          appContext: context,
-          length: 6,
-          onChanged: (value) {
-            print(value);
-          },
-          keyboardType: TextInputType.phone,
-          pinTheme: PinTheme(
-            shape: PinCodeFieldShape.underline,
-            inactiveColor: Colors.black,
-            activeColor: Colors.redAccent,
-            selectedColor: Colors.blue,
-          ),
-        ),
-        // TextField(
-        //   controller: otpController,
-        //   decoration: InputDecoration(
-        //     hintText: "Enter OTP",
-        //   ),
-        //   keyboardType: TextInputType.phone,
-        // ),
-        SizedBox(
-          height: 16,
-        ),
-        TextButton(
-          onPressed: () async {
-            PhoneAuthCredential phoneAuthCredential =
-                PhoneAuthProvider.credential(
-                    verificationId: verificationID,
-                    smsCode: otpController.text);
-
-            signInWithPhoneAuthCredential(phoneAuthCredential);
-          },
-          child: Text("VERIFY"),
-        ),
-        Spacer(),
-      ],
-    );
-  }
-
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-
+class OtpFormWidget extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loginController = ref.watch(loginControllerProvider);
     return Scaffold(
-        key: _scaffoldKey,
-        body: Container(
-          child: showLoading
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
-                  ? getMobileFormWidget(context)
-                  : getOtpFormWidget(context),
-          padding: const EdgeInsets.all(16),
-        ));
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              SafeArea(
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '届いた6桁の認証コードを',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '入力してください',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.fromLTRB(30, 30, 100, 0),
+                child: PinCodeTextField(
+                  controller: loginController.otpController,
+                  appContext: context,
+                  length: 6,
+                  onChanged: (value) {
+                    print(value);
+                  },
+                  keyboardType: TextInputType.phone,
+                  pinTheme: PinTheme(
+                    shape: PinCodeFieldShape.underline,
+                    inactiveColor: Colors.black,
+                    activeColor: Colors.redAccent,
+                    selectedColor: Colors.blue,
+                  ),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.only(right: 175),
+                child: TextButton(
+                    onPressed: () {
+                      // todo処理を書く
+                    },
+                    child: Text(
+                      '認証コードを再送信する',
+                      style: TextStyle(color: Colors.redAccent),
+                    )),
+              ),
+              Container(
+                margin: const EdgeInsets.fromLTRB(30, 10, 30, 0),
+                child: Text('SMSが届かない場合、ご自身の電話番号やSMSの受信設定をご確認ください。'),
+              ),
+            ],
+          ),
+          SafeArea(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: TextButton(
+                  onPressed: () async {
+                    loginController.signIn(context);
+                  },
+                  child: Text(
+                    '送信する',
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.redAccent,
+                  ),
+                ),
+              )
+            ],
+          ))
+        ],
+      ),
+    );
   }
 }
